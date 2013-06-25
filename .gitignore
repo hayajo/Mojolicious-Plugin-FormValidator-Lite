@@ -1,0 +1,6 @@
+/Mojolicious-Plugin-FormValidator-Lite-*
+/.build
+/_build*
+/Build
+MYMETA.*
+!META.json
