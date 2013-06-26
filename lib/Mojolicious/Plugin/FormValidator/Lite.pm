@@ -4,7 +4,7 @@ use Mojo::Base 'Mojolicious::Plugin';
 our $VERSION = '0.01';
 
 use FormValidator::Lite;
-use Clone qw/clone/;
+use Storable qw/dclone/;
 
 sub register {
     my ( $self, $app, $conf ) = @_;
@@ -17,7 +17,7 @@ sub register {
 
             my $msg = $opts{message_data} || {};
             # merge config
-            if ( my $conf_msg = clone $conf->{message_data} ) {
+            if ( my $conf_msg = dclone $conf->{message_data} ) {
                 for my $key (qw/message param function/) {
                     $msg->{$key} = $conf_msg->{$key} if ( $conf_msg->{$key} );
                 }
