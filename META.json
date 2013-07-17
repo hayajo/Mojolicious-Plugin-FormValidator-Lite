@@ -1,5 +1,5 @@
 {
-   "abstract" : "Blah blah blah",
+   "abstract" : "FormValidator::Lite plugin for Mojolicious",
    "author" : [
       "hayajo <hayajo@cpan.org>"
    ],
@@ -44,6 +44,7 @@
       },
       "test" : {
          "requires" : {
+            "HTML::FillInForm::Lite" : "0",
             "Test::More" : "0.88",
             "URI" : "0"
          }
