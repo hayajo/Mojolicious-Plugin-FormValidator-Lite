@@ -4,16 +4,8 @@ use Mojolicious::Lite;
 use HTML::FillInForm::Lite;
 
 plugin 'FormValidator::Lite' => {
-    constraints  => [qw/Email File +t::lib::MyApp::Validator::Constraint/],
-    message_data => {
-        param => {
-            username      => 'ユーザー名',
-            email         => 'メールアドレス',
-            homepage      => 'ホームページアドレス',
-            profile_image => 'プロフィール画像',
-        },
-        function => 'ja',
-    },
+    constraints      => [qw/Email File +t::lib::MyApp::Validator::Constraint/],
+    function_message => 'ja',
 };
 
 get '/' => sub {
@@ -23,13 +15,7 @@ get '/' => sub {
 
 post '/' => sub {
     my $self = shift;
-    $self->validator(
-        message_data => {
-            message => {
-                'homepage.url' => '[_1] には正しいアドレスを入力してください',
-            },
-        },
-    )->check(
+    $self->validator->check(
         username      => [qw/NOT_NULL/],
         email         => [qw/NOT_NULL EMAIL_LOOSE/],
         homepage      => [qw/URL/],
@@ -62,9 +48,12 @@ __DATA__
 @@ index.html.ep
 % layout 'default';
 % title 'ユーザー登録';
+% my $params = { username => 'ユーザー名', email => 'メールアドレス', homepage => 'ホームページアドレス', profile_image => 'プロフィール画像' };
+% validator->set_param_message(%$params);
+% validator->set_message('homepage.url' => '[_1] には正しいアドレスを入力してください');
 <form action="/" method="post" enctype="multipart/form-data">
   <div>
-    <label class="control-label" for="username">ユーザー名</label>
+    <label class="control-label" for="username"><%= $params->{username} %></label>
     <input type="text" name="username" id="username">
     % if (validator->is_error('username')) {
     <div>
@@ -73,7 +62,7 @@ __DATA__
     % }
   </div>
   <div>
-    <label class="control-label" for="email">メールアドレス</label>
+    <label class="control-label" for="email"><%= $params->{email} %></label>
     <input type="text" name="email" id="email">
     % if (validator->is_error('email')) {
     <div>
@@ -82,7 +71,7 @@ __DATA__
     % }
   </div>
   <div>
-    <label class="control-label" for="homepage">ホームページアドレス</label>
+    <label class="control-label" for="homepage"><%= $params->{homepage} %></label>
     <input type="text" name="homepage" id="homepage">
     % if (validator->is_error('homepage')) {
     <div>
@@ -91,7 +80,7 @@ __DATA__
     % }
   </div>
   <div>
-    <label class="control-label" for="profile_image">プロフィール画像</label>
+    <label class="control-label" for="profile_image"><%= $params->{profile_image} %></label>
     <input type="file" name="profile_image" id="profile_image">
     % if (validator->is_error('profile_image')) {
     <div>

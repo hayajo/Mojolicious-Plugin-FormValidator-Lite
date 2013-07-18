@@ -4,15 +4,18 @@ use Mojo::Base 'Mojolicious::Plugin';
 our $VERSION = '0.01';
 
 use FormValidator::Lite;
-use Storable qw/dclone/;
 
 sub register {
     my ( $self, $app, $conf ) = @_;
 
     $app->helper(
         validator => sub {
-            my ($c, %opts) = @_;
-            _validator($c, \%opts, $conf);
+            my $c = shift;
+            if ( !$c->stash('validator') ) {
+                my $v = _validator($c, $conf);
+                $c->stash('validator' => $v);
+            }
+            return $c->stash('validator');
         },
     );
 
@@ -30,37 +33,21 @@ sub register {
 }
 
 sub _validator {
-    my ( $c, $opts, $conf ) = @_;
+    my ( $c, $conf ) = @_;
 
-    return $c->stash('validator') if ( $c->stash('validator') );
-
-    my $constraints = $opts->{constraints} || $conf->{constraints} || [];
-    my $message     = $opts->{message_data} || {};
-
-    # merge config
-    if ( my $conf_message = dclone $conf->{message_data} ) {
-        for my $key (qw/message param function/) {
-            $message->{$key} = $conf_message->{$key} if ( $conf_message->{$key} );
-        }
-    }
-
-    # set default values
-    $message->{message}  ||= {};
-    $message->{param}    ||= +{ map { $_ => $_ } keys %{ $c->req->params->to_hash } };
-    $message->{function} ||= 'en';
-
-    my $lang;
-    if ( $message->{function} =~ /^(ja|en)$/ ) {
-        $lang = $message->{function};
-        $message->{function} = {};
-    }
+    my $constraints      = $conf->{constraints}      || [];
+    my $param_message    = $conf->{param_message}    || {};
+    my $function_message = $conf->{function_message} || 'en';
+    my $message          = $conf->{message}          || {};
 
     my $v = FormValidator::Lite->new($c->req);
     $v->load_constraints(@$constraints);
-    $v->set_message_data($message);
-    $v->load_function_message($lang) if ($lang);
+    $v->load_function_message($function_message);
+    $v->set_param_message(%$param_message);
 
-    $c->stash( validator => $v );
+    for my $key (keys %$message) {
+        $v->set_message($key => $message->{$key});
+    }
 
     return $v;
 }
@@ -79,25 +66,18 @@ Mojolicious::Plugin::FormValidator::Lite - FormValidator::Lite plugin for Mojoli
   # Mojolicious::Lite
   plugin 'FormValidator::Lite' => {
       constraints  => [qw/Email +MyApp::Validator::Constraint/],
-      message_data => {
-          param => {
-              username => 'User Name'
-              email    => 'Email',
-              homepage => 'HomePage',
-          },
-          function => 'ja',
+      param_message => {
+          username => 'User Name'
+          email    => 'Email',
       },
-  }; # default options
+      function_message => 'ja',
+  }; # default settings
 
   post '/' => sub {
       my $self = shift;
-      $self->validator(
-          message_data => {
-              message => {
-                  'homepage.url' => '[_1] is not valid URL'
-              },
-          }, # additional/replacement options
-      )->check(
+      $self->validator->set_message('homepage.url' => '[_1] is not valid URL');
+      $self->validator->set_param_message('homepage' => 'HomePage');
+      $self->validator->check(
           username => [qw/NOT_NULL/],
           email    => [qw/NOT_NULL EMAIL_LOOSE/],
           homepage => [qw/URL/],
@@ -116,7 +96,7 @@ Mojolicious::Plugin::FormValidator::Lite - FormValidator::Lite plugin for Mojoli
   # in template
   % if (validator->has_error) {
   <ul>
-    % for my $msg (validator->get_error_messages_from_param) {
+    % for my $msg (validator->get_error_messages) {
     <li class="text-error"><%= $msg %><li>
     % }
   </ul>

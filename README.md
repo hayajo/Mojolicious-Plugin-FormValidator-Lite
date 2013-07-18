@@ -7,25 +7,18 @@ Mojolicious::Plugin::FormValidator::Lite - FormValidator::Lite plugin for Mojoli
     # Mojolicious::Lite
     plugin 'FormValidator::Lite' => {
         constraints  => [qw/Email +MyApp::Validator::Constraint/],
-        message_data => {
-            param => {
-                username => 'User Name'
-                email    => 'Email',
-                homepage => 'HomePage',
-            },
-            function => 'ja',
+        param_message => {
+            username => 'User Name'
+            email    => 'Email',
         },
-    }; # default options
+        function_message => 'ja',
+    }; # default settings
 
     post '/' => sub {
         my $self = shift;
-        $self->validator(
-            message_data => {
-                message => {
-                    'homepage.url' => '[_1] is not valid URL'
-                },
-            }, # additional/replacement options
-        )->check(
+        $self->validator->set_message('homepage.url' => '[_1] is not valid URL');
+        $self->validator->set_param_message('homepage' => 'HomePage');
+        $self->validator->check(
             username => [qw/NOT_NULL/],
             email    => [qw/NOT_NULL EMAIL_LOOSE/],
             homepage => [qw/URL/],
@@ -44,7 +37,7 @@ Mojolicious::Plugin::FormValidator::Lite - FormValidator::Lite plugin for Mojoli
     # in template
     % if (validator->has_error) {
     <ul>
-      % for my $msg (validator->get_error_messages_from_param) {
+      % for my $msg (validator->get_error_messages) {
       <li class="text-error"><%= $msg %><li>
       % }
     </ul>

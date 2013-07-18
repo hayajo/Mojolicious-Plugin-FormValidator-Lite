@@ -38,7 +38,6 @@
          "requires" : {
             "FormValidator::Lite" : "0.35",
             "Mojolicious" : "0",
-            "Storable" : "2.34",
             "perl" : "5.010001"
          }
       },
