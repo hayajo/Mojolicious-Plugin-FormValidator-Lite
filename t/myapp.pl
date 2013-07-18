@@ -4,12 +4,13 @@ use Mojolicious::Lite;
 use HTML::FillInForm::Lite;
 
 plugin 'FormValidator::Lite' => {
-    constraints  => [qw/Email +t::lib::MyApp::Validator::Constraint/],
+    constraints  => [qw/Email File +t::lib::MyApp::Validator::Constraint/],
     message_data => {
         param => {
-            username => 'ユーザー名',
-            email    => 'メールアドレス',
-            homepage => 'ホームページアドレス',
+            username      => 'ユーザー名',
+            email         => 'メールアドレス',
+            homepage      => 'ホームページアドレス',
+            profile_image => 'プロフィール画像',
         },
         function => 'ja',
     },
@@ -29,9 +30,10 @@ post '/' => sub {
             },
         },
     )->check(
-        username => [qw/NOT_NULL/],
-        email    => [qw/NOT_NULL EMAIL_LOOSE/],
-        homepage => [qw/URL/],
+        username      => [qw/NOT_NULL/],
+        email         => [qw/NOT_NULL EMAIL_LOOSE/],
+        homepage      => [qw/URL/],
+        profile_image => [[FILE_SIZE => 1024 * 30]], # 30KB以下
     );
 
     if ( $self->validator->has_error ) {
@@ -60,7 +62,7 @@ __DATA__
 @@ index.html.ep
 % layout 'default';
 % title 'ユーザー登録';
-<form action="/" method="post">
+<form action="/" method="post" enctype="multipart/form-data">
   <div>
     <label class="control-label" for="username">ユーザー名</label>
     <input type="text" name="username" id="username">
@@ -85,6 +87,15 @@ __DATA__
     % if (validator->is_error('homepage')) {
     <div>
       <span><%= join " ", validator->get_error_messages_from_param('homepage') %></span>
+    </div>
+    % }
+  </div>
+  <div>
+    <label class="control-label" for="profile_image">プロフィール画像</label>
+    <input type="file" name="profile_image" id="profile_image">
+    % if (validator->is_error('profile_image')) {
+    <div>
+      <span><%= join " ", validator->get_error_messages_from_param('profile_image') %></span>
     </div>
     % }
   </div>

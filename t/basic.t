@@ -13,6 +13,10 @@ subtest 'validation' => sub {
         username => 'taro yamada',
         email    => 'taro.yamada@example.jp',
         homepage => 'http://taro.example.jp/',
+        profile_image => {
+            file           => 't/icon.png',
+            'Content-Type' => 'image/png',
+        },
     } )->status_is(200)
        ->content_like(qr/taro yamadaを登録しました/);
 
@@ -26,9 +30,16 @@ subtest 'validation' => sub {
         name     => 'taro yamada',
         email    => 'taro.yamada_at_example.jp',
         homepage => "taro's homepage",
+        profile_image => {
+            file           => 't/icon_large.png',
+            'Content-Type' => 'image/png',
+        },
     } )->status_is(422)
        ->content_like(qr/メールアドレス にはメールアドレスを入力してください/)
-       ->content_like(qr/ホームページアドレス には正しいアドレスを入力してください/);
+       ->content_like(qr/ホームページアドレス には正しいアドレスを入力してください/)
+       ->content_like(qr/プロフィール画像 のファイルサイズがただしくありません/);
 };
+
+diag `pwd`;
 
 done_testing;

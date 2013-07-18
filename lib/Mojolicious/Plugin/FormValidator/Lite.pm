@@ -15,6 +15,18 @@ sub register {
             _validator($c, \%opts, $conf);
         },
     );
+
+    no strict 'refs';
+    *{Mojo::Upload::type} = sub { $_[0]->headers->content_type };
+    *{Mojo::Upload::fh}   = sub {
+        my $asset = $_[0]->asset;
+        if ( $asset->isa('Mojo::Asset::Memory') ) {
+            my $file = Mojo::Asset::File->new;
+            $file->add_chunk($asset->emit(upgrade => $file)->slurp);
+            return $file->handle;
+        }
+        return $asset->handle;
+    };
 }
 
 sub _validator {
@@ -43,7 +55,7 @@ sub _validator {
         $message->{function} = {};
     }
 
-    my $v = FormValidator::Lite->new($c);
+    my $v = FormValidator::Lite->new($c->req);
     $v->load_constraints(@$constraints);
     $v->set_message_data($message);
     $v->load_function_message($lang) if ($lang);
