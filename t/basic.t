@@ -40,6 +40,4 @@ subtest 'validation' => sub {
        ->content_like(qr/プロフィール画像 のファイルサイズがただしくありません/);
 };
 
-diag `pwd`;
-
 done_testing;
