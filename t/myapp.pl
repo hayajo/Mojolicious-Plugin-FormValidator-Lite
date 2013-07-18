@@ -1,4 +1,5 @@
 #!/usr/bin/env perl
+use utf8;
 use Mojolicious::Lite;
 use HTML::FillInForm::Lite;
 
@@ -24,7 +25,7 @@ post '/' => sub {
     $self->validator(
         message_data => {
             message => {
-                'homepage.url' => '[_1] には正しいホームページアドレスを入力してください',
+                'homepage.url' => '[_1] には正しいアドレスを入力してください',
             },
         },
     )->check(

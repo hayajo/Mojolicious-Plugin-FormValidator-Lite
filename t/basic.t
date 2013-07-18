@@ -9,14 +9,12 @@ require 't/myapp.pl';
 my $t = Test::Mojo->new;
 
 subtest 'validation' => sub {
-    $t->post_ok(
-        '/',
-        form => {
-            username => 'taro yamada',
-            email    => 'taro.yamada@example.jp',
-            homepage => 'http://taro.example.jp/',
-        },
-    )->status_is(200)->content_like(qr/taro yamadaを登録しました/);
+    $t->post_ok( '/', form => {
+        username => 'taro yamada',
+        email    => 'taro.yamada@example.jp',
+        homepage => 'http://taro.example.jp/',
+    } )->status_is(200)
+       ->content_like(qr/taro yamadaを登録しました/);
 
     $t->post_ok('/')
       ->status_is(422)
@@ -30,7 +28,7 @@ subtest 'validation' => sub {
         homepage => "taro's homepage",
     } )->status_is(422)
        ->content_like(qr/メールアドレス にはメールアドレスを入力してください/)
-       ->content_like(qr/ホームページアドレス には正しいホームページアドレスを入力してください/);
+       ->content_like(qr/ホームページアドレス には正しいアドレスを入力してください/);
 };
 
 done_testing;
