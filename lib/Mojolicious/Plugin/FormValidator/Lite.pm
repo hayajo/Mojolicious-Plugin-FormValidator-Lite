@@ -102,10 +102,18 @@ Mojolicious::Plugin::FormValidator::Lite - FormValidator::Lite plugin for Mojoli
   };
 
   # in template
+  % if (validator->has_error) {
+  <ul>
+    % for my $msg (validator->get_error_messages_from_param) {
+    <li class="text-error"><%= $msg %><li>
+    % }
+  </ul>
+  % }
+  ...
+  ...
+  ...
   % if (validator->is_error('email')) {
-  <div>
-      <span><%= join " ", validator->get_error_messages_from_param('email') %></span>
-  </div>
+  <span class="text-error"><%= join " ", validator->get_error_messages_from_param('email') %></span>
   % }
 
 =head1 DESCRIPTION
